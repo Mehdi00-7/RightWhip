@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import listings
 
 app= FastAPI(title="RightWhip API")
 app.add_middleware(
@@ -11,3 +12,6 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+app.include_router(listings.router)
+
