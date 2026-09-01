@@ -282,7 +282,7 @@ Phases 0–5 alone are already a portfolio project. Phases 9–10 are what make 
 
 ## Progress
 
-- [ ] Phase 0 — Foundations
+- [x] Phase 0 — Foundations
 - [ ] Phase 1 — Data model
 - [ ] Phase 2 — Seed data
 - [ ] Phase 3 — Browse page
