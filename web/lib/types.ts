@@ -1,0 +1,21 @@
+export type Listing = {
+  id: number;
+  make: string;
+  model: string;
+  variant: string | null;
+  year: number;
+  price: number;
+  mileage: number;
+  fuel_type: string;
+  transmission: string;
+  body_type: string;
+  colour: string | null;
+  engine_size: number | null;
+  description: string | null;
+  postcode: string;
+  latitude: number | null;
+  longitude: number | null;
+  seller_id: number;
+  status: string;
+  created_at: string;
+};

@@ -5,15 +5,15 @@ from pydantic import BaseModel
 class ListingCreate(BaseModel):
     make: str
     model: str
-    variant: str 
-    year: int
+    variant: str | None = None
+    year: int | None = None
     price: int
     mileage: int
     fuel_type: str
     transmission: str
     body_type: str
     colour: str 
-    engine_size: float 
+    engine_size: float | None = None
     description: str | None = None
     postcode: str
     latitude: float | None = None
