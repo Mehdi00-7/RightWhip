@@ -22,7 +22,16 @@ export default async function ListingDetailPage({
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <div className="h-64 bg-gray-200 rounded mb-4" />
+      {listing.images.length > 0 ? (
+  <img
+    src={`http://localhost:8000${listing.images[0].url}`}
+    alt={`${listing.make} ${listing.model}`}
+    className="w-full h-64 object-cover rounded mb-4"
+  />
+) : (
+  <div className="h-64 bg-gray-200 rounded mb-4" />
+)}
+
 
       <h1 className="text-2xl font-bold">
         {listing.year} {listing.make} {listing.model}

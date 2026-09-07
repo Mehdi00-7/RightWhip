@@ -18,4 +18,11 @@ export type Listing = {
   seller_id: number;
   status: string;
   created_at: string;
+  images: ListingImage[];
+};
+export type ListingImage = {
+  id: number;
+  listing_id: number;
+  url: string;
+  position: number;
 };

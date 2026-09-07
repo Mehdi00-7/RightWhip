@@ -34,3 +34,10 @@ class ListingImageRead(BaseModel):
     position: int
 
     model_config = {"from_attributes": True}
+class ListingRead(ListingCreate):
+    id: int
+    status: str
+    created_at: datetime
+    images: list[ListingImageRead] = []
+
+    model_config = {"from_attributes": True}
