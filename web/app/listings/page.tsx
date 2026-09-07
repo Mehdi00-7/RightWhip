@@ -13,6 +13,14 @@ type Params = {
   year_min?: string;
   fuel_type?: string;
 };
+function buildPageLink(params: Params, page: number) {
+  const p = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v && k !== "page") p.set(k, v);
+  });
+  p.set("page", String(page));
+  return `/listings?${p.toString()}`;
+}
 
 export default async function ListingsPage({
   searchParams,
@@ -52,14 +60,14 @@ export default async function ListingsPage({
 
             <div className="flex justify-between mt-6">
               {currentPage > 1 ? (
-                <Link href={`/listings?page=${currentPage - 1}`} className="underline">
+                <Link href={buildPageLink(params, currentPage - 1)} className="underline">
                   ← Previous
                 </Link>
               ) : (
                 <span />
               )}
               {listings.length === PAGE_SIZE && (
-                <Link href={`/listings?page=${currentPage + 1}`} className="underline">
+                <Link href={buildPageLink(params, currentPage + 1)} className="underline">
                   Next →
                 </Link>
               )}

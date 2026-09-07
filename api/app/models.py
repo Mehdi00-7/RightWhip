@@ -23,13 +23,13 @@ class Listing(Base):
     id = Column(Integer, primary_key=True)
 
     # core identity
-    make = Column(String, nullable=False)
+    make = Column(String, nullable=False,index=True)
     model = Column(String, nullable=False)
     variant = Column(String, nullable=True)
     year = Column(Integer, nullable=False)
 
     # money & usage
-    price = Column(Integer, nullable=False)
+    price = Column(Integer, nullable=False,index=True)
     mileage = Column(Integer, nullable=False)
 
     # spec
