@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Listing } from "@/lib/types";
 
 function formatPrice(pence: number) {
@@ -6,7 +7,7 @@ function formatPrice(pence: number) {
 
 export default function ListingCard({ listing }: { listing: Listing }) {
   return (
-    <div className="border rounded-lg p-4">
+    <Link href={`/listings/${listing.id}`} className="border rounded-lg p-4 block hover:shadow-md">
       <div className="h-40 bg-gray-200 rounded mb-3" />
       <h2 className="font-semibold">
         {listing.year} {listing.make} {listing.model}
@@ -17,6 +18,6 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         {listing.mileage.toLocaleString("en-GB")} miles · {listing.transmission} · {listing.fuel_type}
       </p>
       <p className="text-sm text-gray-500">{listing.postcode}</p>
-    </div>
+    </Link>
   );
 }
