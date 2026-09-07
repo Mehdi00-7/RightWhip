@@ -5,7 +5,7 @@ from fastapi import Query
 from app.db import get_db
 from app.models import Listing
 from app.schemas import ListingCreate, ListingRead
-
+from typing import Literal
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 
@@ -17,15 +17,27 @@ def create_listing(payload: ListingCreate, db: Session = Depends(get_db)):
     db.refresh(listing)
     return listing
 
-@router.get("",response_model=list[ListingRead])
-def get_listings(limit: int=Query(24,ge=1, le=100),offset: int=Query(0,ge=0), db: Session=Depends(get_db)):
-    return (
-        db.query(Listing)
-        .order_by(Listing.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+
+
+@router.get("", response_model=list[ListingRead])
+def get_listings(
+    limit: int = Query(24, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    sort: Literal["newest", "price_asc", "price_desc", "mileage_asc"] = "newest",
+    db: Session = Depends(get_db),
+):
+    query = db.query(Listing)
+
+    if sort == "price_asc":
+        query = query.order_by(Listing.price.asc())
+    elif sort == "price_desc":
+        query = query.order_by(Listing.price.desc())
+    elif sort == "mileage_asc":
+        query = query.order_by(Listing.mileage.asc())
+    else:
+        query = query.order_by(Listing.created_at.desc())
+
+    return query.offset(offset).limit(limit).all()
 
 
 @router.get("/{listing_id}", response_model=ListingRead)
