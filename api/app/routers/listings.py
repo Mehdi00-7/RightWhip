@@ -6,6 +6,7 @@ from app.db import get_db
 from app.models import Listing
 from app.schemas import ListingCreate, ListingRead
 from typing import Literal
+from app.services.search import build_listing_query
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 
@@ -18,15 +19,26 @@ def create_listing(payload: ListingCreate, db: Session = Depends(get_db)):
     return listing
 
 
-
 @router.get("", response_model=list[ListingRead])
 def get_listings(
     limit: int = Query(24, ge=1, le=100),
     offset: int = Query(0, ge=0),
     sort: Literal["newest", "price_asc", "price_desc", "mileage_asc"] = "newest",
+    make: str | None = None,
+    price_min: int | None = None,
+    price_max: int | None = None,
+    year_min: int | None = None,
+    year_max: int | None = None,
+    mileage_max: int | None = None,
+    fuel_type: str | None = None,
+    transmission: str | None = None,
     db: Session = Depends(get_db),
 ):
-    query = db.query(Listing)
+    query = build_listing_query(
+        db, make=make, price_min=price_min, price_max=price_max,
+        year_min=year_min, year_max=year_max, mileage_max=mileage_max,
+        fuel_type=fuel_type, transmission=transmission,
+    )
 
     if sort == "price_asc":
         query = query.order_by(Listing.price.asc())
