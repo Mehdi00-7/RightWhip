@@ -26,3 +26,11 @@ class ListingRead(ListingCreate):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+class ListingImageRead(BaseModel):
+    id: int
+    listing_id: int
+    url: str
+    position: int
+
+    model_config = {"from_attributes": True}
