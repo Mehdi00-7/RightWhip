@@ -18,7 +18,7 @@ class ListingCreate(BaseModel):
     postcode: str
     latitude: float | None = None
     longitude: float | None = None
-    seller_id: int
+    
 
 
 class ListingImageRead(BaseModel):
@@ -33,10 +33,11 @@ class ListingRead(ListingCreate):
     id: int
     status: str
     created_at: datetime
+    seller_id: int
     images: list[ListingImageRead] = []
 
     model_config = {"from_attributes": True}
-    
+
 class SellerCreate(BaseModel):
     name: str
     email: str

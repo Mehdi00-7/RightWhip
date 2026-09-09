@@ -3,16 +3,20 @@ from sqlalchemy.orm import Session
 from fastapi import Query
 
 from app.db import get_db
-from app.models import Listing
+from app.models import Listing,Seller
 from app.schemas import ListingCreate, ListingRead
 from typing import Literal
 from app.services.search import build_listing_query
 router = APIRouter(prefix="/listings", tags=["listings"])
-
+from app.security import get_current_user
 
 @router.post("", response_model=ListingRead, status_code=201)
-def create_listing(payload: ListingCreate, db: Session = Depends(get_db)):
-    listing = Listing(**payload.model_dump())
+def create_listing(
+    payload: ListingCreate,
+    db: Session = Depends(get_db),
+    current_user: Seller = Depends(get_current_user),
+):
+    listing = Listing(**payload.model_dump(exclude={"seller_id"}), seller_id=current_user.id)
     db.add(listing)
     db.commit()
     db.refresh(listing)

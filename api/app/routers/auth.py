@@ -6,6 +6,11 @@ from app.models import Seller
 from app.schemas import SellerCreate, SellerRead
 from app.security import hash_password
 
+
+from app.security import hash_password, verify_password, create_access_token
+from app.schemas import Token
+from fastapi import Response
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -24,3 +29,20 @@ def register(payload: SellerCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(seller)
     return seller
+
+
+@router.post("/login", response_model=Token)
+def login(payload: SellerCreate, response: Response, db: Session = Depends(get_db)):
+    seller = db.query(Seller).filter(Seller.email == payload.email).first()
+    if seller is None or not verify_password(payload.password, seller.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+
+    token = create_access_token(seller.id)
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24,
+    )
+    return Token(access_token=token)
