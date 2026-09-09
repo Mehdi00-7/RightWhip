@@ -20,12 +20,6 @@ class ListingCreate(BaseModel):
     longitude: float | None = None
     seller_id: int
 
-class ListingRead(ListingCreate):
-    id: int
-    status: str
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
 
 class ListingImageRead(BaseModel):
     id: int
@@ -34,6 +28,7 @@ class ListingImageRead(BaseModel):
     position: int
 
     model_config = {"from_attributes": True}
+
 class ListingRead(ListingCreate):
     id: int
     status: str
@@ -41,3 +36,21 @@ class ListingRead(ListingCreate):
     images: list[ListingImageRead] = []
 
     model_config = {"from_attributes": True}
+    
+class SellerCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class SellerRead(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    model_config = {"from_attributes": True}
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
