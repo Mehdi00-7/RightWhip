@@ -23,6 +23,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://autotrail:autotrail_dev@localhost:5432/autotrail_test
+      JWT_SECRET: ci-test-secret
 
     defaults:
       run:
