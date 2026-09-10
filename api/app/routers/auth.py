@@ -1,15 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Seller
-from app.schemas import SellerCreate, SellerRead
-from app.security import hash_password
-
-
+from app.schemas import SellerCreate, SellerRead, Token, LoginRequest
 from app.security import hash_password, verify_password, create_access_token
-from app.schemas import Token
-from fastapi import Response
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,7 +27,7 @@ def register(payload: SellerCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(payload: SellerCreate, response: Response, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     seller = db.query(Seller).filter(Seller.email == payload.email).first()
     if seller is None or not verify_password(payload.password, seller.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
@@ -46,3 +41,9 @@ def login(payload: SellerCreate, response: Response, db: Session = Depends(get_d
         max_age=60 * 60 * 24,
     )
     return Token(access_token=token)
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"detail": "Logged out"}

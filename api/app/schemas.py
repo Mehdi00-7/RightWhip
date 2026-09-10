@@ -57,6 +57,11 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
 class ListingUpdate(BaseModel):
     make: str | None = None
     model: str | None = None
@@ -74,3 +79,25 @@ class ListingUpdate(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     status: str | None = None
+
+
+class FavouriteRead(BaseModel):
+    id: int
+    listing_id: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SavedSearchCreate(BaseModel):
+    name: str | None = None
+    filters: dict
+
+
+class SavedSearchRead(BaseModel):
+    id: int
+    name: str | None
+    filters: dict
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

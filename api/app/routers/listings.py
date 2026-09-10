@@ -56,6 +56,19 @@ def get_listings(
     return query.offset(offset).limit(limit).all()
 
 
+@router.get("/mine", response_model=list[ListingRead])
+def get_my_listings(
+    db: Session = Depends(get_db),
+    current_user: Seller = Depends(get_current_user),
+):
+    return (
+        db.query(Listing)
+        .filter(Listing.seller_id == current_user.id)
+        .order_by(Listing.created_at.desc())
+        .all()
+    )
+
+
 @router.get("/{listing_id}", response_model=ListingRead)
 def get_listing(listing_id: int, db: Session = Depends(get_db)):
     listing = db.get(Listing, listing_id)
@@ -77,7 +90,12 @@ def update_listing(
     if listing.seller_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your listing")
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    updates = payload.model_dump(exclude_unset=True)
+    if updates.get("status") == "published" and listing.status != "published":
+        from datetime import datetime, timezone
+        listing.published_at = datetime.now(timezone.utc)
+
+    for field, value in updates.items():
         setattr(listing, field, value)
 
     db.commit()

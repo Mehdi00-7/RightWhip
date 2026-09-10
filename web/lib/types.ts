@@ -26,3 +26,10 @@ export type ListingImage = {
   url: string;
   position: number;
 };
+
+export type SavedSearch = {
+  id: number;
+  name: string | null;
+  filters: Record<string, string | number>;
+  created_at: string;
+};
