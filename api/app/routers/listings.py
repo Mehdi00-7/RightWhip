@@ -36,22 +36,31 @@ def get_listings(
     mileage_max: int | None = None,
     fuel_type: str | None = None,
     transmission: str | None = None,
+    lat: float | None = None,
+    lng: float | None = None,
+    radius_km: float | None = None,
     db: Session = Depends(get_db),
 ):
     query = build_listing_query(
         db, make=make, price_min=price_min, price_max=price_max,
         year_min=year_min, year_max=year_max, mileage_max=mileage_max,
         fuel_type=fuel_type, transmission=transmission,
+        lat=lat, lng=lng, radius_km=radius_km,
     )
 
-    if sort == "price_asc":
-        query = query.order_by(Listing.price.asc())
-    elif sort == "price_desc":
-        query = query.order_by(Listing.price.desc())
-    elif sort == "mileage_asc":
-        query = query.order_by(Listing.mileage.asc())
-    else:
-        query = query.order_by(Listing.created_at.desc())
+    # Radius search already orders by distance inside build_listing_query —
+    # leave that as the authoritative order rather than overriding it below.
+    is_radius_search = lat is not None and lng is not None and radius_km is not None
+
+    if not is_radius_search:
+        if sort == "price_asc":
+            query = query.order_by(Listing.price.asc())
+        elif sort == "price_desc":
+            query = query.order_by(Listing.price.desc())
+        elif sort == "mileage_asc":
+            query = query.order_by(Listing.mileage.asc())
+        else:
+            query = query.order_by(Listing.created_at.desc())
 
     return query.offset(offset).limit(limit).all()
 
