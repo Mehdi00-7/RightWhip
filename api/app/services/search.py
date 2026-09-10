@@ -17,6 +17,7 @@ def build_listing_query(
     mileage_max: int | None = None,
     fuel_type: str | None = None,
     transmission: str | None = None,
+    body_type: str | None = None,
     lat: float | None = None,
     lng: float | None = None,
     radius_km: float | None = None,
@@ -39,6 +40,8 @@ def build_listing_query(
         query = query.filter(Listing.fuel_type.ilike(fuel_type))
     if transmission:
         query = query.filter(Listing.transmission.ilike(transmission))
+    if body_type:
+        query = query.filter(Listing.body_type.ilike(body_type))
 
     if lat is not None and lng is not None and radius_km is not None:
         # Cheap bounding-box prefilter first — uses the indexes on

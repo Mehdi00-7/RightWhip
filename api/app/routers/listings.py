@@ -4,9 +4,10 @@ from fastapi import Query
 
 from app.db import get_db
 from app.models import Listing,Seller
-from app.schemas import ListingCreate, ListingRead, ListingUpdate
+from app.schemas import ListingCreate, ListingRead, ListingUpdate, PriceComparison
 from typing import Literal
 from app.services.search import build_listing_query
+from app.services.pricing import get_comparables_stats, summarize_price, MIN_SAMPLE_SIZE
 router = APIRouter(prefix="/listings", tags=["listings"])
 from app.security import get_current_user
 
@@ -36,6 +37,7 @@ def get_listings(
     mileage_max: int | None = None,
     fuel_type: str | None = None,
     transmission: str | None = None,
+    body_type: str | None = None,
     lat: float | None = None,
     lng: float | None = None,
     radius_km: float | None = None,
@@ -44,7 +46,7 @@ def get_listings(
     query = build_listing_query(
         db, make=make, price_min=price_min, price_max=price_max,
         year_min=year_min, year_max=year_max, mileage_max=mileage_max,
-        fuel_type=fuel_type, transmission=transmission,
+        fuel_type=fuel_type, transmission=transmission, body_type=body_type,
         lat=lat, lng=lng, radius_km=radius_km,
     )
 
@@ -84,6 +86,32 @@ def get_listing(listing_id: int, db: Session = Depends(get_db)):
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
     return listing
+
+
+@router.get("/{listing_id}/price-comparison", response_model=PriceComparison)
+def get_price_comparison(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.get(Listing, listing_id)
+    if listing is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    stats = get_comparables_stats(db, listing)
+    n = stats["n"]
+
+    # Statistical honesty: don't claim a signal we don't have enough data for.
+    if n < MIN_SAMPLE_SIZE:
+        return PriceComparison(sample_size=n)
+
+    median = round(stats["median_price"])
+    difference = listing.price - median
+
+    return PriceComparison(
+        sample_size=n,
+        median_price=median,
+        p25_price=round(stats["p25_price"]),
+        p75_price=round(stats["p75_price"]),
+        difference_from_median=difference,
+        summary=summarize_price(listing, difference),
+    )
 
 
 @router.patch("/{listing_id}", response_model=ListingRead)
