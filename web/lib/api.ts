@@ -5,3 +5,21 @@ export async function apiGet<T>(path: string): Promise<T> {
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
   return res.json();
 }
+
+// For Server Components that need the logged-in user's data. Node has no
+// browser cookie jar, so the caller must read the cookie (via next/headers)
+// and pass it in — this just does the repeated fetch + forwarding part.
+export async function apiGetAuthed<T>(
+  path: string,
+  token: string | undefined
+): Promise<{ data: T | null; status: number }> {
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Cookie: `access_token=${token}` } : {},
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    return { data: null, status: res.status };
+  }
+  return { data: await res.json(), status: res.status };
+}
+

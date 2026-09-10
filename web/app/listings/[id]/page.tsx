@@ -1,6 +1,8 @@
-import { apiGet } from "@/lib/api";
+import { cookies } from "next/headers";
+import { apiGet, apiGetAuthed } from "@/lib/api";
 import { Listing } from "@/lib/types";
 import { notFound } from "next/navigation";
+import FavouriteButton from "@/app/components/FavouriteButton";
 
 function formatPrice(pence: number) {
   return `£${(pence / 100).toLocaleString("en-GB")}`;
@@ -20,8 +22,18 @@ export default async function ListingDetailPage({
     notFound();
   }
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  const favouritesResult = token
+    ? await apiGetAuthed<number[]>("/favourites/ids", token)
+    : { data: null };
+  const isFavourited = (favouritesResult.data ?? []).includes(listing.id);
+
   return (
     <main className="p-6 max-w-3xl mx-auto">
+      <div className="flex justify-end mb-2">
+        <FavouriteButton listingId={listing.id} initialFavourited={isFavourited} />
+      </div>
       {listing.images.length > 0 ? (
   <img
     src={`http://localhost:8000${listing.images[0].url}`}
