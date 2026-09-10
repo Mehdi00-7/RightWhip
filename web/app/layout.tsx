@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { Car, Map, Heart, Bookmark, LayoutDashboard, LogIn } from "lucide-react";
+import { Car, Map, Heart, Bookmark, LayoutDashboard, LogIn, Plus } from "lucide-react";
 import LogoutButton from "@/app/components/LogoutButton";
 import "./globals.css";
 
@@ -63,9 +63,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               ))}
             </div>
 
-            <div className="ml-auto shrink-0">
+            <div className="ml-auto flex items-center gap-2 shrink-0">
               {isLoggedIn ? (
-                <LogoutButton />
+                <>
+                  <Link
+                    href="/dashboard/new"
+                    className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Plus size={16} />
+                    Post a listing
+                  </Link>
+                  <LogoutButton />
+                </>
               ) : (
                 <Link
                   href="/login"

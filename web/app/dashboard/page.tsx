@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, PackageOpen } from "lucide-react";
+import { LayoutDashboard, PackageOpen, Plus } from "lucide-react";
 import { Listing } from "@/lib/types";
 import DeleteListingButton from "@/app/components/DeleteListingButton";
+import PublishListingButton from "@/app/components/PublishListingButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -37,16 +38,32 @@ export default async function DashboardPage() {
 
   return (
     <main className="max-w-4xl w-full mx-auto p-4 sm:p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <LayoutDashboard size={22} className="text-brand" />
-        <h1 className="text-2xl font-bold text-slate-900">My listings</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <LayoutDashboard size={22} className="text-brand" />
+          <h1 className="text-2xl font-bold text-slate-900">My listings</h1>
+        </div>
+        <Link
+          href="/dashboard/new"
+          className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          <Plus size={16} />
+          Post a listing
+        </Link>
       </div>
 
       {listings.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center bg-white border border-slate-200 rounded-xl py-16 px-4">
           <PackageOpen size={32} className="text-slate-300 mb-3" />
           <p className="text-slate-600 font-medium">You haven&apos;t posted any listings yet</p>
-          <p className="text-slate-400 text-sm mt-1">Listings you post will show up here.</p>
+          <p className="text-slate-400 text-sm mt-1 mb-4">Post your first listing to see it here.</p>
+          <Link
+            href="/dashboard/new"
+            className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={16} />
+            Post a listing
+          </Link>
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -77,8 +94,13 @@ export default async function DashboardPage() {
                       {listing.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right">
-                    <DeleteListingButton listingId={listing.id} />
+                  <td className="py-3 px-4">
+                    <div className="flex items-center justify-end gap-4">
+                      {listing.status === "draft" && (
+                        <PublishListingButton listingId={listing.id} />
+                      )}
+                      <DeleteListingButton listingId={listing.id} />
+                    </div>
                   </td>
                 </tr>
               ))}
