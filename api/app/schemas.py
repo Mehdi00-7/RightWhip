@@ -57,6 +57,11 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
 class ListingUpdate(BaseModel):
     make: str | None = None
     model: str | None = None
