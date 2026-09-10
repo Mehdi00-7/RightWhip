@@ -7,7 +7,10 @@ const API_URL =
   process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // standalone output is for the self-hosted Docker image (web/Dockerfile);
+  // Vercel provides its own build output and errors on this mode (missing
+  // .nft.json trace files), so skip it there.
+  output: process.env.VERCEL ? undefined : "standalone",
   async rewrites() {
     return [
       {
