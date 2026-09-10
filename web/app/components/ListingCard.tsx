@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { Gauge, Fuel, Settings2, MapPin } from "lucide-react";
 import { Listing } from "@/lib/types";
+import { imageSrc } from "@/lib/images";
 import FavouriteButton from "@/app/components/FavouriteButton";
-
-// Rendered into an <img> the browser fetches directly — must be the
-// public/browser-reachable address, not the internal server-to-server one.
-const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 function formatPrice(pence: number) {
   return `£${(pence / 100).toLocaleString("en-GB")}`;
@@ -27,7 +24,7 @@ export default function ListingCard({
         {listing.images.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`${PUBLIC_API_URL}${listing.images[0].url}`}
+            src={imageSrc(listing.images[0].url)}
             alt={`${listing.make} ${listing.model}`}
             className="w-full h-full object-cover"
           />
