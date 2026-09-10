@@ -88,23 +88,16 @@ def make_listing(seller_id, car):
     return listing
 
 
-SEED_EMAIL_LIKE = "seller%@example.com"
-
-
 def main():
     db = SessionLocal()
     try:
-        # Idempotent: bail if the demo listings are already there. Checks the
-        # seed's own data specifically, so it's independent of anything a
-        # visitor posts. Exits 0 so it's safe to leave in the start command.
-        already = (
-            db.query(Listing)
-            .join(Seller, Listing.seller_id == Seller.id)
-            .filter(Seller.email.like(SEED_EMAIL_LIKE))
-            .count()
-        )
+        # Idempotent: bail if the seed's own photos are already present.
+        # "/cars/..." URLs are only ever produced by this script — a listing
+        # posted through the form by someone using a demo login uploads to
+        # "/uploads/...", so it won't trip this guard.
+        already = db.query(ListingImage).filter(ListingImage.url.like("/cars/%")).count()
         if already:
-            print(f"already seeded ({already} demo listings) — nothing to do.")
+            print(f"already seeded ({already} demo photos) — nothing to do.")
             return
 
         pw_hash = hash_password(DEMO_PASSWORD)
