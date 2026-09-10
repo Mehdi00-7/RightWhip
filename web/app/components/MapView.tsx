@@ -27,7 +27,7 @@ function formatPrice(pence: number) {
 export default function MapView({ listings }: { listings: Listing[] }) {
   const withCoords = listings.filter(
     (l): l is Listing & { latitude: number; longitude: number } =>
-      l.latitude !== null && l.longitude !== null
+      typeof l.latitude === "number" && typeof l.longitude === "number"
   );
 
   const center: [number, number] =

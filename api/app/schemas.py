@@ -52,6 +52,12 @@ class SellerRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ListingDetailRead(ListingRead):
+    # Only the single-listing endpoint exposes the seller's contact details,
+    # so buyers can get in touch — the list endpoints stay lean.
+    seller: SellerRead
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
