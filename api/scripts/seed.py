@@ -1,5 +1,4 @@
 import random
-import sys
 from datetime import datetime
 
 from app.db import SessionLocal
@@ -94,9 +93,10 @@ def main():
     try:
         existing = db.query(Listing).count()
         if existing > 10:
-            print(f"DB already has {existing} listings — refusing to double-seed.")
-            print("Clear the listings/sellers tables first if you really want to reseed.")
-            sys.exit(1)
+            # Exit 0, not 1 — so this staying wired as a Railway pre-deploy
+            # command doesn't fail every future deployment.
+            print(f"DB already has {existing} listings — nothing to seed.")
+            return
 
         pw_hash = hash_password(DEMO_PASSWORD)
         sellers = []
