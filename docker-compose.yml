@@ -10,6 +10,43 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autotrail"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://autotrail:autotrail_dev@db:5432/autotrail
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./web
+      args:
+        # Baked into the image at build time — must be browser-reachable
+        # (client-rendered <img> tags use it) and the routes manifest for
+        # the /api rewrite (also resolved at build time).
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        API_URL: http://api:8000
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      # Overrides the image's build-time default at actual container
+      # startup — this is what lib/api.ts's server-side fetches use.
+      API_URL: http://api:8000
+    ports:
+      - "3000:3000"
 
 volumes:
   pgdata:
