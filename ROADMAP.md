@@ -283,11 +283,11 @@ Phases 0–5 alone are already a portfolio project. Phases 9–10 are what make 
 ## Progress
 
 - [x] Phase 0 — Foundations
-- [ ] Phase 1 — Data model
-- [ ] Phase 2 — Seed data
-- [ ] Phase 3 — Browse page
-- [ ] Phase 4 — Filters & search
-- [ ] Phase 5 — Detail & images
+- [x] Phase 1 — Data model
+- [x] Phase 2 — Seed data
+- [x] Phase 3 — Browse page
+- [x] Phase 4 — Filters & search
+- [x] Phase 5 — Detail & images
 - [x] Phase 6 — Auth & dashboard
 - [x] Phase 7 — Favourites & saved searches
 - [x] Phase 8 — Map view
