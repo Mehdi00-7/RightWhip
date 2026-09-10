@@ -1,13 +1,18 @@
 import random
+import sys
 from datetime import datetime
 
 from app.db import SessionLocal
-from app.models import Seller, Listing
+from app.models import Seller, Listing, ListingImage
 from app.security import hash_password
+from scripts.car_images import CAR_IMAGES
 
 # Seeded sellers all share this password so the deployed demo is explorable
 # (log in, view dashboard, post/publish). Documented in the README.
 DEMO_PASSWORD = "demo1234"
+
+SELLER_COUNT = 20
+LISTINGS_PER_MODEL = 20   # keeps price-comparison samples healthy
 
 
 # make, model, body_type, fuel, new_price_in_pence
@@ -36,8 +41,8 @@ CITIES = [
 ]
 
 
-def make_listing(seller_id):
-    make, model, body, fuel, new_price = random.choice(CARS)
+def make_listing(seller_id, car):
+    make, model, body, fuel, new_price = car
     year = random.randint(2015, 2024)
     age = datetime.now().year - year
 
@@ -54,34 +59,49 @@ def make_listing(seller_id):
 
     # random noise so prices aren't a perfect formula
     price *= random.uniform(0.93, 1.07)
-    price = max(int(price), 90000)   # floor at £900
+    price = max(int(price), 90000)          # floor at £900
+    price = round(price / 5000) * 5000      # round to the nearest £50, like real ads
 
     city, postcode_prefix, lat, lng = random.choice(CITIES)
 
-    return Listing(
+    listing = Listing(
         make=make,
         model=model,
         year=year,
         price=price,
         mileage=mileage,
         fuel_type=fuel,
-        transmission=random.choice(["manual", "automatic"]),
+        transmission="automatic" if fuel == "electric" else random.choice(["manual", "automatic"]),
         body_type=body,
         colour=random.choice(["black", "white", "silver", "blue", "red", "grey"]),
-        engine_size=random.choice([1.0, 1.4, 1.6, 2.0, 2.5]),
+        engine_size=None if fuel == "electric" else random.choice([1.0, 1.4, 1.6, 2.0, 2.5]),
         postcode=f"{postcode_prefix} {random.randint(1,9)}{random.choice('ABDEFG')}{random.choice('ABDEFG')}",
         latitude=lat + random.uniform(-0.08, 0.08),
         longitude=lng + random.uniform(-0.08, 0.08),
         seller_id=seller_id,
         status="published",
     )
+
+    photos = CAR_IMAGES.get((make, model), [])
+    for i, url in enumerate(random.sample(photos, k=min(len(photos), random.choice([1, 2, 2])))):
+        listing.images.append(ListingImage(url=url, position=i))
+
+    return listing
+
+
 def main():
-    db=SessionLocal()
+    db = SessionLocal()
     try:
-        pw_hash=hash_password(DEMO_PASSWORD)
-        sellers=[]
-        for i in range(20):
-            seller=Seller(
+        existing = db.query(Listing).count()
+        if existing > 10:
+            print(f"DB already has {existing} listings — refusing to double-seed.")
+            print("Clear the listings/sellers tables first if you really want to reseed.")
+            sys.exit(1)
+
+        pw_hash = hash_password(DEMO_PASSWORD)
+        sellers = []
+        for i in range(SELLER_COUNT):
+            seller = Seller(
                 name=f"Seller {i+1}",
                 email=f"seller{i+1}@example.com",
                 password_hash=pw_hash,
@@ -91,15 +111,21 @@ def main():
         db.commit()
         for seller in sellers:
             db.refresh(seller)
-        for _ in range (500):
-            seller=random.choice(sellers)
-            listing=make_listing(seller.id)
-            db.add(listing)
+
+        listings = [
+            make_listing(random.choice(sellers).id, car)
+            for car in CARS
+            for _ in range(LISTINGS_PER_MODEL)
+        ]
+        random.shuffle(listings)   # so the first page isn't all one model
+        db.add_all(listings)
         db.commit()
-        print("generated 500 listings from 20 sellers")
+
+        print(f"generated {len(listings)} listings from {SELLER_COUNT} sellers")
         print(f"demo login: seller1@example.com / {DEMO_PASSWORD}")
     finally:
         db.close()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
