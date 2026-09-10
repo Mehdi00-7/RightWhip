@@ -1,6 +1,7 @@
 from sqlalchemy import (
-    Column, Integer, String, Float, Text, ForeignKey, DateTime, func
+    Column, Integer, String, Float, Text, ForeignKey, DateTime, func, UniqueConstraint
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -43,13 +44,14 @@ class Listing(Base):
 
     # location
     postcode = Column(String, nullable=False)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True, index=True)
+    longitude = Column(Float, nullable=True, index=True)
 
     # meta
     seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False)
     status = Column(String, nullable=False, default="draft")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    published_at = Column(DateTime(timezone=True), nullable=True)
 
     seller = relationship("Seller", back_populates="listings")
     images = relationship("ListingImage", back_populates="listing")
@@ -64,3 +66,31 @@ class ListingImage(Base):
     position = Column(Integer, nullable=False, default=0)
 
     listing = relationship("Listing", back_populates="images")
+
+
+class Favourite(Base):
+    __tablename__ = "favourites"
+    __table_args__ = (
+        UniqueConstraint("seller_id", "listing_id", name="uq_favourite_seller_listing"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False)
+    listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    seller = relationship("Seller")
+    listing = relationship("Listing")
+
+
+class SavedSearch(Base):
+    __tablename__ = "saved_searches"
+
+    id = Column(Integer, primary_key=True)
+    seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False)
+    name = Column(String, nullable=True)
+    filters = Column(JSONB, nullable=False)
+    last_checked_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    seller = relationship("Seller")

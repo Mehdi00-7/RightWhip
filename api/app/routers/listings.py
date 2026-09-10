@@ -90,7 +90,12 @@ def update_listing(
     if listing.seller_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your listing")
 
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    updates = payload.model_dump(exclude_unset=True)
+    if updates.get("status") == "published" and listing.status != "published":
+        from datetime import datetime, timezone
+        listing.published_at = datetime.now(timezone.utc)
+
+    for field, value in updates.items():
         setattr(listing, field, value)
 
     db.commit()
