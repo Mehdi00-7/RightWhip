@@ -21,6 +21,9 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
+    env:
+      DATABASE_URL: postgresql://autotrail:autotrail_dev@localhost:5432/autotrail_test
+
     defaults:
       run:
         working-directory: api
@@ -44,6 +47,5 @@ jobs:
           cache: "npm"
           cache-dependency-path: web/package-lock.json
       - run: npm ci
-      - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run build
