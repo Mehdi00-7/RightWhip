@@ -28,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <nav className="flex gap-4 p-4 border-b text-sm">
           <Link href="/listings" className="font-semibold">RightWhip</Link>
           <Link href="/listings">Browse</Link>
+          <Link href="/map">Map</Link>
           <Link href="/favourites">Favourites</Link>
           <Link href="/saved-searches">Saved searches</Link>
           <Link href="/dashboard">Dashboard</Link>
