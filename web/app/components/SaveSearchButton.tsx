@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 export default function SaveSearchButton({
   filters,
@@ -29,11 +30,20 @@ export default function SaveSearchButton({
   }
 
   if (saved) {
-    return <span className="text-sm text-gray-500">Search saved ✓</span>;
+    return (
+      <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+        <BookmarkCheck size={15} />
+        Saved
+      </span>
+    );
   }
 
   return (
-    <button onClick={handleSave} className="text-sm underline">
+    <button
+      onClick={handleSave}
+      className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand transition-colors"
+    >
+      <Bookmark size={15} />
       Save this search
     </button>
   );

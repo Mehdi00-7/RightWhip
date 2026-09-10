@@ -6,6 +6,7 @@ import FilterSidebar from "@/app/components/FilterSidebar";
 import SaveSearchButton from "@/app/components/SaveSearchButton";
 import NLSearchBar from "@/app/components/NLSearchBar";
 import Link from "next/link";
+import { ArrowLeft, ArrowRight, SearchX } from "lucide-react";
 
 const PAGE_SIZE = 24;
 
@@ -67,23 +68,33 @@ export default async function ListingsPage({
   if (params.body_type) activeFilters.body_type = params.body_type;
 
   return (
-    <main className="p-6 flex gap-6">
+    <main className="max-w-6xl w-full mx-auto p-4 sm:p-6 flex flex-col sm:flex-row gap-6">
       <FilterSidebar searchParams={params} />
 
-      <div className="flex-1">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Used cars</h1>
+      <div className="flex-1 min-w-0">
+        <div className="mb-6">
+          <NLSearchBar />
+        </div>
+
+        <div className="flex justify-between items-center mb-5">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Used cars</h1>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {listings.length} listing{listings.length === 1 ? "" : "s"}
+              {currentPage > 1 ? ` — page ${currentPage}` : ""}
+            </p>
+          </div>
           {Object.keys(activeFilters).length > 0 && (
             <SaveSearchButton filters={activeFilters} />
           )}
         </div>
 
-        <div className="mb-6">
-          <NLSearchBar />
-        </div>
-
         {listings.length === 0 ? (
-          <p className="text-gray-500">No listings found.</p>
+          <div className="flex flex-col items-center justify-center text-center bg-white border border-slate-200 rounded-xl py-16 px-4">
+            <SearchX size={32} className="text-slate-300 mb-3" />
+            <p className="text-slate-600 font-medium">No listings found</p>
+            <p className="text-slate-400 text-sm mt-1">Try widening your filters.</p>
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,17 +107,25 @@ export default async function ListingsPage({
               ))}
             </div>
 
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between items-center mt-8">
               {currentPage > 1 ? (
-                <Link href={buildPageLink(params, currentPage - 1)} className="underline">
-                  ← Previous
+                <Link
+                  href={buildPageLink(params, currentPage - 1)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand transition-colors"
+                >
+                  <ArrowLeft size={16} />
+                  Previous
                 </Link>
               ) : (
                 <span />
               )}
               {listings.length === PAGE_SIZE && (
-                <Link href={buildPageLink(params, currentPage + 1)} className="underline">
-                  Next →
+                <Link
+                  href={buildPageLink(params, currentPage + 1)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand transition-colors"
+                >
+                  Next
+                  <ArrowRight size={16} />
                 </Link>
               )}
             </div>

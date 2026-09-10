@@ -1,12 +1,31 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { apiGet, apiGetAuthed } from "@/lib/api";
 import { Listing, PriceComparison } from "@/lib/types";
 import { notFound } from "next/navigation";
 import FavouriteButton from "@/app/components/FavouriteButton";
+import {
+  ArrowLeft,
+  Gauge,
+  Fuel,
+  Settings2,
+  Car,
+  MapPin,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 
 function formatPrice(pence: number) {
   return `£${(pence / 100).toLocaleString("en-GB")}`;
 }
+
+const specs = (listing: Listing) => [
+  { icon: Gauge, label: "Mileage", value: `${listing.mileage.toLocaleString("en-GB")} miles` },
+  { icon: Fuel, label: "Fuel type", value: listing.fuel_type, capitalize: true },
+  { icon: Settings2, label: "Transmission", value: listing.transmission, capitalize: true },
+  { icon: Car, label: "Body type", value: listing.body_type, capitalize: true },
+  { icon: MapPin, label: "Location", value: listing.postcode },
+];
 
 export default async function ListingDetailPage({
   params,
@@ -35,69 +54,80 @@ export default async function ListingDetailPage({
     `/listings/${listing.id}/price-comparison`
   ).catch(() => null);
 
+  const showBadge =
+    priceComparison && priceComparison.sample_size >= 5 && priceComparison.difference_from_median !== null;
+  const isBelow = showBadge && priceComparison!.difference_from_median! < 0;
+
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <div className="flex justify-end mb-2">
-        <FavouriteButton listingId={listing.id} initialFavourited={isFavourited} />
+    <main className="max-w-3xl w-full mx-auto p-4 sm:p-6">
+      <Link
+        href="/listings"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand mb-4 transition-colors"
+      >
+        <ArrowLeft size={15} />
+        Back to listings
+      </Link>
+
+      <div className="relative rounded-xl overflow-hidden mb-6 bg-slate-100">
+        {listing.images.length > 0 ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`http://localhost:8000${listing.images[0].url}`}
+            alt={`${listing.make} ${listing.model}`}
+            className="w-full h-72 sm:h-96 object-cover"
+          />
+        ) : (
+          <div className="w-full h-72 sm:h-96 flex items-center justify-center text-slate-300">
+            No photo available
+          </div>
+        )}
+        <div className="absolute top-3 right-3">
+          <FavouriteButton listingId={listing.id} initialFavourited={isFavourited} />
+        </div>
       </div>
-      {listing.images.length > 0 ? (
-  <img
-    src={`http://localhost:8000${listing.images[0].url}`}
-    alt={`${listing.make} ${listing.model}`}
-    className="w-full h-64 object-cover rounded mb-4"
-  />
-) : (
-  <div className="h-64 bg-gray-200 rounded mb-4" />
-)}
 
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <h1 className="text-2xl font-bold text-slate-900">
+          {listing.year} {listing.make} {listing.model}
+          {listing.variant ? ` ${listing.variant}` : ""}
+        </h1>
 
-      <h1 className="text-2xl font-bold">
-        {listing.year} {listing.make} {listing.model}
-        {listing.variant ? ` ${listing.variant}` : ""}
-      </h1>
-      <p className="text-2xl font-bold text-blue-700 my-2">
-        {formatPrice(listing.price)}
-      </p>
+        <div className="flex flex-wrap items-center gap-3 mt-2 mb-5">
+          <p className="text-3xl font-bold text-slate-900">{formatPrice(listing.price)}</p>
 
-      {priceComparison && priceComparison.sample_size >= 5 && priceComparison.difference_from_median !== null && (
-        <p
-          className={`inline-block text-sm rounded-full px-3 py-1 mb-4 ${
-            priceComparison.difference_from_median < 0
-              ? "bg-green-100 text-green-800"
-              : "bg-orange-100 text-orange-800"
-          }`}
-        >
-          {priceComparison.summary ??
-            (priceComparison.difference_from_median < 0
-              ? `${formatPrice(Math.abs(priceComparison.difference_from_median))} below similar listings`
-              : `${formatPrice(priceComparison.difference_from_median)} above similar listings`)}
-          {" "}
-          <span className="text-xs opacity-70">
-            (based on {priceComparison.sample_size} similar listings)
-          </span>
-        </p>
-      )}
+          {showBadge && (
+            <span
+              className={`flex items-center gap-1.5 text-sm font-medium rounded-full px-3 py-1 ${
+                isBelow ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              {isBelow ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
+              {priceComparison!.summary ??
+                (isBelow
+                  ? `${formatPrice(Math.abs(priceComparison!.difference_from_median!))} below similar listings`
+                  : `${formatPrice(priceComparison!.difference_from_median!)} above similar listings`)}
+            </span>
+          )}
+        </div>
 
-      <dl className="grid grid-cols-2 gap-2 text-sm my-4">
-        <dt className="text-gray-500">Mileage</dt>
-        <dd>{listing.mileage.toLocaleString("en-GB")} miles</dd>
+        <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-5 border-y border-slate-100">
+          {specs(listing).map(({ icon: Icon, label, value, capitalize }) => (
+            <div key={label}>
+              <dt className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                <Icon size={13} />
+                {label}
+              </dt>
+              <dd className={`text-sm font-medium text-slate-900 ${capitalize ? "capitalize" : ""}`}>
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
-        <dt className="text-gray-500">Fuel type</dt>
-        <dd className="capitalize">{listing.fuel_type}</dd>
-
-        <dt className="text-gray-500">Transmission</dt>
-        <dd className="capitalize">{listing.transmission}</dd>
-
-        <dt className="text-gray-500">Body type</dt>
-        <dd className="capitalize">{listing.body_type}</dd>
-
-        <dt className="text-gray-500">Location</dt>
-        <dd>{listing.postcode}</dd>
-      </dl>
-
-      {listing.description && (
-        <p className="text-gray-700">{listing.description}</p>
-      )}
+        {listing.description && (
+          <p className="text-slate-600 text-sm leading-relaxed mt-5">{listing.description}</p>
+        )}
+      </div>
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Bookmark, ChevronRight } from "lucide-react";
 import { apiGetAuthed } from "@/lib/api";
 import { SavedSearch } from "@/lib/types";
 import DeleteSavedSearchButton from "@/app/components/DeleteSavedSearchButton";
@@ -43,23 +44,36 @@ export default async function SavedSearchesPage() {
   }
 
   return (
-    <main className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Saved searches</h1>
+    <main className="max-w-2xl w-full mx-auto p-4 sm:p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Bookmark size={22} className="text-brand" />
+        <h1 className="text-2xl font-bold text-slate-900">Saved searches</h1>
+      </div>
 
       {!searches || searches.length === 0 ? (
-        <p className="text-gray-500">
-          No saved searches yet — apply filters on the listings page and click &quot;Save this search&quot;.
-        </p>
+        <div className="flex flex-col items-center justify-center text-center bg-white border border-slate-200 rounded-xl py-16 px-4">
+          <Bookmark size={32} className="text-slate-300 mb-3" />
+          <p className="text-slate-600 font-medium">No saved searches yet</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Apply filters on the listings page and click &quot;Save this search&quot;.
+          </p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {searches.map((search) => (
-            <li key={search.id} className="border rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <Link href={buildListingsLink(search.filters)} className="font-semibold underline">
-                  {search.name || describeFilters(search.filters)}
-                </Link>
-                <p className="text-sm text-gray-500">{describeFilters(search.filters)}</p>
-              </div>
+            <li
+              key={search.id}
+              className="bg-white border border-slate-200 rounded-xl p-4 flex justify-between items-center hover:border-brand transition-colors"
+            >
+              <Link href={buildListingsLink(search.filters)} className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900 truncate">
+                    {search.name || describeFilters(search.filters)}
+                  </p>
+                  <p className="text-sm text-slate-500 truncate">{describeFilters(search.filters)}</p>
+                </div>
+                <ChevronRight size={16} className="text-slate-300 shrink-0" />
+              </Link>
               <DeleteSavedSearchButton searchId={search.id} />
             </li>
           ))}
