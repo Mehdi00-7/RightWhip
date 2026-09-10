@@ -96,21 +96,29 @@ export default async function ListingDetailPage({
           {listing.variant ? ` ${listing.variant}` : ""}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-3 mt-2 mb-5">
-          <p className="text-3xl font-bold text-slate-900">{formatPrice(listing.price)}</p>
+        <div className="mt-2 mb-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-3xl font-bold text-slate-900">{formatPrice(listing.price)}</p>
 
-          {showBadge && (
-            <span
-              className={`flex items-center gap-1.5 text-sm font-medium rounded-full px-3 py-1 ${
-                isBelow ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-              }`}
-            >
-              {isBelow ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-              {priceComparison!.summary ??
-                (isBelow
-                  ? `${formatPrice(Math.abs(priceComparison!.difference_from_median!))} below similar listings`
-                  : `${formatPrice(priceComparison!.difference_from_median!)} above similar listings`)}
-            </span>
+            {showBadge && (
+              <span
+                className={`inline-flex items-center gap-1.5 text-sm font-medium rounded-full px-3 py-1 whitespace-nowrap ${
+                  isBelow ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                }`}
+              >
+                {isBelow ? (
+                  <TrendingDown size={14} className="shrink-0" />
+                ) : (
+                  <TrendingUp size={14} className="shrink-0" />
+                )}
+                {formatPrice(Math.abs(priceComparison!.difference_from_median!))}{" "}
+                {isBelow ? "below" : "above"} similar cars
+              </span>
+            )}
+          </div>
+
+          {showBadge && priceComparison!.summary && (
+            <p className="text-sm text-slate-500 mt-2">{priceComparison!.summary}</p>
           )}
         </div>
 
