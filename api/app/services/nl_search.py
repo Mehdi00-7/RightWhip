@@ -56,7 +56,7 @@ def parse_nl_query(db: Session, query: str) -> NLSearchFilters:
 
     client = _get_client()
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": query},

@@ -52,7 +52,7 @@ def summarize_price(listing: Listing, difference: int) -> str | None:
         direction = "below" if difference < 0 else "above"
 
         response = _get_client().chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{
                 "role": "user",
                 "content": (
@@ -62,8 +62,12 @@ def summarize_price(listing: Listing, difference: int) -> str | None:
                 ),
             }],
             temperature=0.3,
-            max_tokens=40,
+            # gpt-oss is a reasoning model — it "thinks" in a separate
+            # channel before writing the visible answer, so max_tokens has
+            # to cover both, not just the short sentence itself.
+            max_tokens=200,
         )
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content.strip()
+        return content or None
     except Exception:
         return None
