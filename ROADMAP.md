@@ -288,9 +288,9 @@ Phases 0–5 alone are already a portfolio project. Phases 9–10 are what make 
 - [ ] Phase 3 — Browse page
 - [ ] Phase 4 — Filters & search
 - [ ] Phase 5 — Detail & images
-- [ ] Phase 6 — Auth & dashboard
-- [ ] Phase 7 — Favourites & saved searches
-- [ ] Phase 8 — Map view
+- [x] Phase 6 — Auth & dashboard
+- [x] Phase 7 — Favourites & saved searches
+- [x] Phase 8 — Map view
 - [ ] Phase 9 — NL search (AI)
 - [ ] Phase 10 — Fair price (AI)
 - [ ] Phase 11 — Listing assistant (stretch)
