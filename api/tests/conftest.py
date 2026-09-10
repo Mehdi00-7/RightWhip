@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.db import Base, get_db
 from app.models import Seller, Listing
+from app.security import get_current_user
 
 TEST_DATABASE_URL = "postgresql://autotrail:autotrail_dev@localhost:5432/autotrail_test"
 
@@ -41,6 +42,22 @@ def client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authed_client(db_session, seller_factory):
+    """A TestClient whose requests are authenticated as a freshly created
+    seller. Yields (client, seller) so tests can assert on ownership."""
+    seller = seller_factory()
+
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = lambda: seller
+    with TestClient(app) as test_client:
+        yield test_client, seller
     app.dependency_overrides.clear()
 
 

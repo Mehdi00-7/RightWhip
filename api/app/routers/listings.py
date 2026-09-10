@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import Query
 
 from app.db import get_db
 from app.models import Listing,Seller
-from app.schemas import ListingCreate, ListingRead, ListingUpdate, PriceComparison
+from app.schemas import ListingCreate, ListingRead, ListingDetailRead, ListingUpdate, PriceComparison
 from typing import Literal
 from app.services.search import build_listing_query
 from app.services.pricing import get_comparables_stats, summarize_price, MIN_SAMPLE_SIZE
+from app.services.geocoding import geocode_postcode
 router = APIRouter(prefix="/listings", tags=["listings"])
 from app.security import get_current_user
 
@@ -17,7 +18,16 @@ def create_listing(
     db: Session = Depends(get_db),
     current_user: Seller = Depends(get_current_user),
 ):
-    listing = Listing(**payload.model_dump(exclude={"seller_id"}), seller_id=current_user.id)
+    data = payload.model_dump(exclude={"seller_id"})
+
+    # If the seller didn't drop a pin, derive coordinates from the postcode so
+    # the listing still shows up on the map.
+    if data.get("latitude") is None or data.get("longitude") is None:
+        coords = geocode_postcode(data["postcode"])
+        if coords:
+            data["latitude"], data["longitude"] = coords
+
+    listing = Listing(**data, seller_id=current_user.id)
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -80,9 +90,14 @@ def get_my_listings(
     )
 
 
-@router.get("/{listing_id}", response_model=ListingRead)
+@router.get("/{listing_id}", response_model=ListingDetailRead)
 def get_listing(listing_id: int, db: Session = Depends(get_db)):
-    listing = db.get(Listing, listing_id)
+    listing = (
+        db.query(Listing)
+        .options(joinedload(Listing.seller))
+        .filter(Listing.id == listing_id)
+        .first()
+    )
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
     return listing
@@ -131,6 +146,12 @@ def update_listing(
     if updates.get("status") == "published" and listing.status != "published":
         from datetime import datetime, timezone
         listing.published_at = datetime.now(timezone.utc)
+
+    # Postcode changed without an explicit new pin — re-derive coordinates.
+    if "postcode" in updates and "latitude" not in updates and "longitude" not in updates:
+        coords = geocode_postcode(updates["postcode"])
+        if coords:
+            updates["latitude"], updates["longitude"] = coords
 
     for field, value in updates.items():
         setattr(listing, field, value)

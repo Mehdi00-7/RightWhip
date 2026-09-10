@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { apiGet, apiGetAuthed } from "@/lib/api";
-import { Listing, PriceComparison } from "@/lib/types";
+import { ListingDetail, PriceComparison } from "@/lib/types";
 import { notFound } from "next/navigation";
 import FavouriteButton from "@/app/components/FavouriteButton";
+import ListingLocationMapClient from "@/app/components/ListingLocationMapClient";
 import {
   ArrowLeft,
   Gauge,
@@ -11,6 +12,8 @@ import {
   Settings2,
   Car,
   MapPin,
+  Mail,
+  UserRound,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -23,7 +26,7 @@ function formatPrice(pence: number) {
   return `£${(pence / 100).toLocaleString("en-GB")}`;
 }
 
-const specs = (listing: Listing) => [
+const specs = (listing: ListingDetail) => [
   { icon: Gauge, label: "Mileage", value: `${listing.mileage.toLocaleString("en-GB")} miles` },
   { icon: Fuel, label: "Fuel type", value: listing.fuel_type, capitalize: true },
   { icon: Settings2, label: "Transmission", value: listing.transmission, capitalize: true },
@@ -38,9 +41,9 @@ export default async function ListingDetailPage({
 }) {
   const { id } = await params;
 
-  let listing: Listing;
+  let listing: ListingDetail;
   try {
-    listing = await apiGet<Listing>(`/listings/${id}`);
+    listing = await apiGet<ListingDetail>(`/listings/${id}`);
   } catch {
     notFound();
   }
@@ -131,6 +134,44 @@ export default async function ListingDetailPage({
         {listing.description && (
           <p className="text-slate-600 text-sm leading-relaxed mt-5">{listing.description}</p>
         )}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 mt-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 mb-3">
+            <UserRound size={15} className="text-brand" />
+            Contact seller
+          </h2>
+          <p className="text-sm text-slate-700">{listing.seller.name}</p>
+          <a
+            href={`mailto:${listing.seller.email}?subject=${encodeURIComponent(
+              `Enquiry about your ${listing.year} ${listing.make} ${listing.model}`
+            )}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-dark mt-2"
+          >
+            <Mail size={14} />
+            {listing.seller.email}
+          </a>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 mb-3">
+            <MapPin size={15} className="text-brand" />
+            Location
+          </h2>
+          {listing.latitude !== null && listing.longitude !== null ? (
+            <div className="h-44 rounded-lg overflow-hidden border border-slate-200">
+              <ListingLocationMapClient
+                latitude={listing.latitude}
+                longitude={listing.longitude}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">
+              Approximate area: {listing.postcode}
+            </p>
+          )}
+        </div>
       </div>
     </main>
   );

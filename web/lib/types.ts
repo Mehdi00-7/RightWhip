@@ -27,6 +27,16 @@ export type ListingImage = {
   position: number;
 };
 
+export type Seller = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+// The single-listing endpoint (GET /listings/:id) additionally returns the
+// seller's contact details; the list endpoints do not.
+export type ListingDetail = Listing & { seller: Seller };
+
 export type PriceComparison = {
   sample_size: number;
   median_price: number | null;

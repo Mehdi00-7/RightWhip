@@ -54,7 +54,12 @@ class Listing(Base):
     published_at = Column(DateTime(timezone=True), nullable=True)
 
     seller = relationship("Seller", back_populates="listings")
-    images = relationship("ListingImage", back_populates="listing")
+    images = relationship(
+        "ListingImage",
+        back_populates="listing",
+        order_by="ListingImage.position",
+        cascade="all, delete-orphan",
+    )
 
 
 class ListingImage(Base):

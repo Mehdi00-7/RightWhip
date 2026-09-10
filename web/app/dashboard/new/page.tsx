@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Car, LocateFixed } from "lucide-react";
+import { ArrowLeft, Car, LocateFixed, ImagePlus } from "lucide-react";
 
 const inputClass =
   "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-shadow";
@@ -15,6 +15,7 @@ export default function NewListingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   function useMyLocation() {
     if (!navigator.geolocation) return;
@@ -60,19 +61,32 @@ export default function NewListingPage() {
       body: JSON.stringify(payload),
     });
 
-    setSubmitting(false);
-
     if (res.status === 401) {
+      setSubmitting(false);
       router.push("/login");
       return;
     }
 
     if (!res.ok) {
+      setSubmitting(false);
       const body = await res.json().catch(() => null);
       setError(body?.detail ?? "Couldn't create the listing — check the fields and try again.");
       return;
     }
 
+    // Listing exists now; upload photos to it. A photo failure shouldn't lose
+    // the whole listing — the seller can add more from the dashboard later.
+    const created = await res.json();
+    for (const photo of photos) {
+      const fd = new FormData();
+      fd.append("file", photo);
+      await fetch(`/api/listings/${created.id}/images`, {
+        method: "POST",
+        body: fd,
+      }).catch(() => null);
+    }
+
+    setSubmitting(false);
     router.push("/dashboard");
     router.refresh();
   }
@@ -184,7 +198,29 @@ export default function NewListingPage() {
         </div>
 
         <div>
-          <label className={labelClass}>Location on map (optional)</label>
+          <label className={labelClass}>Photos</label>
+          <label className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-brand border border-slate-200 border-dashed rounded-lg px-3 py-2 cursor-pointer transition-colors w-fit">
+            <ImagePlus size={15} />
+            {photos.length > 0
+              ? `${photos.length} photo${photos.length === 1 ? "" : "s"} selected`
+              : "Add photos"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="hidden"
+              onChange={(e) => setPhotos(Array.from(e.target.files ?? []))}
+            />
+          </label>
+          {photos.length > 0 && (
+            <p className="text-xs text-slate-400 mt-1">
+              {photos.map((p) => p.name).join(", ")}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className={labelClass}>Pin exact location (optional)</label>
           <button
             type="button"
             onClick={useMyLocation}
@@ -193,6 +229,9 @@ export default function NewListingPage() {
             <LocateFixed size={15} />
             {locating ? "Locating..." : coords ? "Location set ✓" : "Use my current location"}
           </button>
+          <p className="text-xs text-slate-400 mt-1">
+            Otherwise the map position is derived from your postcode.
+          </p>
         </div>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
