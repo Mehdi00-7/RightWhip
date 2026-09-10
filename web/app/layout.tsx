@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { Car, Map, Heart, Bookmark, LayoutDashboard, LogIn } from "lucide-react";
+import LogoutButton from "@/app/components/LogoutButton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,10 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const cookieStore = await cookies();
+  const isLoggedIn = Boolean(cookieStore.get("access_token"));
+
   return (
     <html
       lang="en"
@@ -58,13 +63,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               ))}
             </div>
 
-            <Link
-              href="/login"
-              className="ml-auto flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0"
-            >
-              <LogIn size={16} />
-              Log in
-            </Link>
+            <div className="ml-auto shrink-0">
+              {isLoggedIn ? (
+                <LogoutButton />
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  <LogIn size={16} />
+                  Log in
+                </Link>
+              )}
+            </div>
           </nav>
         </header>
 

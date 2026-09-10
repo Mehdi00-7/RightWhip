@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, PackageOpen } from "lucide-react";
 import { Listing } from "@/lib/types";
-import LogoutButton from "@/app/components/LogoutButton";
 import DeleteListingButton from "@/app/components/DeleteListingButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -38,12 +37,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="max-w-4xl w-full mx-auto p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <LayoutDashboard size={22} className="text-brand" />
-          <h1 className="text-2xl font-bold text-slate-900">My listings</h1>
-        </div>
-        <LogoutButton />
+      <div className="flex items-center gap-2 mb-6">
+        <LayoutDashboard size={22} className="text-brand" />
+        <h1 className="text-2xl font-bold text-slate-900">My listings</h1>
       </div>
 
       {listings.length === 0 ? (
