@@ -1,4 +1,13 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Two different addresses for the same API, needed once this runs in
+// separate containers:
+//  - API_URL: how the Next.js SERVER reaches the API (e.g. the Docker
+//    Compose service name "http://api:8000" — unreachable as "localhost"
+//    from inside a different container).
+//  - NEXT_PUBLIC_API_URL: how the user's BROWSER reaches the API (must be
+//    a real, publicly-resolvable address). Also the fallback for API_URL,
+//    since in plain local dev (no Docker) both are the same address.
+const API_URL =
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_URL}${path}`);
@@ -22,4 +31,3 @@ export async function apiGetAuthed<T>(
   }
   return { data: await res.json(), status: res.status };
 }
-

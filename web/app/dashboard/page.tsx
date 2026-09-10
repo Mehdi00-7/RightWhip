@@ -2,11 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, PackageOpen, Plus } from "lucide-react";
+import { apiGetAuthed } from "@/lib/api";
 import { Listing } from "@/lib/types";
 import DeleteListingButton from "@/app/components/DeleteListingButton";
 import PublishListingButton from "@/app/components/PublishListingButton";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 function formatPrice(pence: number) {
   return `£${(pence / 100).toLocaleString("en-GB")}`;
@@ -25,16 +24,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const res = await fetch(`${API_URL}/listings/mine`, {
-    headers: { Cookie: `access_token=${token.value}` },
-    cache: "no-store",
-  });
+  const { data: listings, status } = await apiGetAuthed<Listing[]>("/listings/mine", token.value);
 
-  if (res.status === 401) {
+  if (status === 401) {
     redirect("/login");
   }
-
-  const listings: Listing[] = await res.json();
 
   return (
     <main className="max-w-4xl w-full mx-auto p-4 sm:p-6">
@@ -52,7 +46,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {listings.length === 0 ? (
+      {!listings || listings.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center bg-white border border-slate-200 rounded-xl py-16 px-4">
           <PackageOpen size={32} className="text-slate-300 mb-3" />
           <p className="text-slate-600 font-medium">You haven&apos;t posted any listings yet</p>
