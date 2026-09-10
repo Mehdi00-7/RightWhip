@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from app.routers import auth
 from app.routers import favourites
 from app.routers import saved_searches
+from app.routers import search
 
 app= FastAPI(title="RightWhip API")
 app.add_middleware(
@@ -25,3 +26,4 @@ app.include_router(auth.router)
 app.include_router(favourites.router)
 app.include_router(favourites.favourites_router)
 app.include_router(saved_searches.router)
+app.include_router(search.router)

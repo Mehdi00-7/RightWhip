@@ -101,3 +101,44 @@ class SavedSearchRead(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class NLSearchRequest(BaseModel):
+    query: str
+
+
+# What we ask the LLM to produce. Deliberately NOT the same shape as the
+# API filters below — price is in whole pounds here, because trusting an
+# LLM to correctly multiply by 100 is asking for trouble. The conversion
+# to pence happens in Python, not in the model's head.
+class RawNLFilters(BaseModel):
+    make: str | None = None
+    price_max_gbp: int | None = None
+    price_min_gbp: int | None = None
+    year_min: int | None = None
+    mileage_max: int | None = None
+    fuel_type: str | None = None
+    transmission: str | None = None
+    body_type: str | None = None
+
+
+# The validated, API-ready shape — same field names/units as GET /listings'
+# query params, so the frontend can pass this straight through unchanged.
+class PriceComparison(BaseModel):
+    sample_size: int
+    median_price: int | None = None
+    p25_price: int | None = None
+    p75_price: int | None = None
+    difference_from_median: int | None = None  # negative = priced below market
+    summary: str | None = None
+
+
+class NLSearchFilters(BaseModel):
+    make: str | None = None
+    price_max: int | None = None
+    price_min: int | None = None
+    year_min: int | None = None
+    mileage_max: int | None = None
+    fuel_type: str | None = None
+    transmission: str | None = None
+    body_type: str | None = None

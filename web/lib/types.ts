@@ -27,6 +27,15 @@ export type ListingImage = {
   position: number;
 };
 
+export type PriceComparison = {
+  sample_size: number;
+  median_price: number | null;
+  p25_price: number | null;
+  p75_price: number | null;
+  difference_from_median: number | null;
+  summary: string | null;
+};
+
 export type SavedSearch = {
   id: number;
   name: string | null;

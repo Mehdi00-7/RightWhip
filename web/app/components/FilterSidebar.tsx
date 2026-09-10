@@ -16,11 +16,7 @@ export default function FilterSidebar({
         type="number"
         name="price_max"
         placeholder="Max price (£)"
-        defaultValue={
-          searchParams.price_max
-            ? String(Number(searchParams.price_max) / 100)
-            : ""
-        }
+        defaultValue={searchParams.price_max ?? ""}
         className="border rounded px-2 py-1"
       />
       <input
@@ -36,6 +32,13 @@ export default function FilterSidebar({
         <option value="diesel">Diesel</option>
         <option value="hybrid">Hybrid</option>
         <option value="electric">Electric</option>
+      </select>
+      <select name="body_type" defaultValue={searchParams.body_type ?? ""} className="border rounded px-2 py-1">
+        <option value="">Any body type</option>
+        <option value="hatchback">Hatchback</option>
+        <option value="estate">Estate</option>
+        <option value="saloon">Saloon</option>
+        <option value="suv">SUV</option>
       </select>
       <button type="submit" className="bg-black text-white rounded px-3 py-2">
         Apply filters
