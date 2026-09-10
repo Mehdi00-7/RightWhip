@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Heart } from "lucide-react";
 
 export default function FavouriteButton({
   listingId,
@@ -43,9 +44,12 @@ export default function FavouriteButton({
     <button
       onClick={toggle}
       aria-label={favourited ? "Remove from favourites" : "Add to favourites"}
-      className={`text-xl ${favourited ? "text-red-600" : "text-gray-400"}`}
+      className="bg-white/90 backdrop-blur rounded-full p-2 shadow-sm hover:scale-110 transition-transform"
     >
-      {favourited ? "♥" : "♡"}
+      <Heart
+        size={18}
+        className={favourited ? "fill-red-500 text-red-500" : "text-slate-400"}
+      />
     </button>
   );
 }

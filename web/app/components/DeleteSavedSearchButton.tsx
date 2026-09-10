@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 
 export default function DeleteSavedSearchButton({ searchId }: { searchId: number }) {
   const router = useRouter();
@@ -11,8 +12,12 @@ export default function DeleteSavedSearchButton({ searchId }: { searchId: number
   }
 
   return (
-    <button onClick={handleDelete} className="text-red-600 text-sm underline">
-      Delete
+    <button
+      onClick={handleDelete}
+      aria-label="Delete saved search"
+      className="text-slate-400 hover:text-red-600 transition-colors p-2"
+    >
+      <Trash2 size={16} />
     </button>
   );
 }

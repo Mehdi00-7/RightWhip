@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, Loader2 } from "lucide-react";
 
 type NLFilters = {
   make: string | null;
@@ -62,22 +63,29 @@ export default function NLSearchBar() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder='Try: "reliable family car under £15k, low mileage, automatic"'
-        className="flex-1 border rounded px-3 py-2"
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+    <div>
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-brand transition-shadow"
       >
-        {loading ? "Thinking..." : "Search"}
-      </button>
-      {error && <p className="text-red-600 text-sm self-center">{error}</p>}
-    </form>
+        <Sparkles size={18} className="text-brand shrink-0 ml-2" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder='Try "reliable family car under £15k, automatic"'
+          className="flex-1 min-w-0 px-1 py-2 text-sm focus:outline-none"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-60 shrink-0"
+        >
+          {loading && <Loader2 size={14} className="animate-spin" />}
+          {loading ? "Thinking" : "Search"}
+        </button>
+      </form>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+    </div>
   );
 }
