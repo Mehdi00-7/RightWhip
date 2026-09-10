@@ -3,16 +3,20 @@ from sqlalchemy.orm import Session
 from fastapi import Query
 
 from app.db import get_db
-from app.models import Listing
-from app.schemas import ListingCreate, ListingRead
+from app.models import Listing,Seller
+from app.schemas import ListingCreate, ListingRead, ListingUpdate
 from typing import Literal
 from app.services.search import build_listing_query
 router = APIRouter(prefix="/listings", tags=["listings"])
-
+from app.security import get_current_user
 
 @router.post("", response_model=ListingRead, status_code=201)
-def create_listing(payload: ListingCreate, db: Session = Depends(get_db)):
-    listing = Listing(**payload.model_dump())
+def create_listing(
+    payload: ListingCreate,
+    db: Session = Depends(get_db),
+    current_user: Seller = Depends(get_current_user),
+):
+    listing = Listing(**payload.model_dump(exclude={"seller_id"}), seller_id=current_user.id)
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -58,5 +62,42 @@ def get_listing(listing_id: int, db: Session = Depends(get_db)):
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
     return listing
+
+
+@router.patch("/{listing_id}", response_model=ListingRead)
+def update_listing(
+    listing_id: int,
+    payload: ListingUpdate,
+    db: Session = Depends(get_db),
+    current_user: Seller = Depends(get_current_user),
+):
+    listing = db.get(Listing, listing_id)
+    if listing is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if listing.seller_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your listing")
+
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(listing, field, value)
+
+    db.commit()
+    db.refresh(listing)
+    return listing
+
+
+@router.delete("/{listing_id}", status_code=204)
+def delete_listing(
+    listing_id: int,
+    db: Session = Depends(get_db),
+    current_user: Seller = Depends(get_current_user),
+):
+    listing = db.get(Listing, listing_id)
+    if listing is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if listing.seller_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your listing")
+
+    db.delete(listing)
+    db.commit()
 
 
