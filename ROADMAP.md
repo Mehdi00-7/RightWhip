@@ -229,28 +229,17 @@ Mostly SQL. That's the point.
 
 ---
 
-## Phase 11 — AI #3: Listing assistant (stretch, 1 day)
-
-Seller uploads photos + basic details → Claude drafts a description and flags visible damage.
-
-- Vision: pass images as base64 `image` content blocks alongside a text block
-- Structured output again: `{ description: str, highlights: list[str], damage_flags: list[str] }`
-- **Guardrails:** the model must not invent specs — pass make/model/year/mileage as facts and instruct it to use only those
-- The draft is always editable before publish. Never auto-publish generated copy.
-
----
-
-## Phase 12 — Tests, Docker, CI/CD, deploy (1–2 days)
+## Phase 11 — Tests, Docker, CI/CD, deploy (1–2 days)
 
 | Step | What you build | Concept |
 |---|---|---|
-| 12.1 | `pytest` + a test database fixture | Test isolation; why tests must not share prod data |
-| 12.2 | Tests for the query builder and the price calculator | Test the logic, not the framework |
-| 12.3 | One Playwright smoke test: search → detail page | End-to-end testing |
-| 12.4 | `Dockerfile` for api and web (multi-stage) | Image size; build vs. runtime layers |
-| 12.5 | GitHub Actions: lint → test → build on every push | CI |
-| 12.6 | Deploy: Vercel (web) + Fly.io or Railway (api + Postgres) | Env var management; secrets never in git |
-| 12.7 | README with screenshots + architecture diagram | The thing a recruiter actually reads |
+| 11.1 | `pytest` + a test database fixture | Test isolation; why tests must not share prod data |
+| 11.2 | Tests for the query builder and the price calculator | Test the logic, not the framework |
+| 11.3 | One Playwright smoke test: search → detail page | End-to-end testing |
+| 11.4 | `Dockerfile` for api and web (multi-stage) | Image size; build vs. runtime layers |
+| 11.5 | GitHub Actions: lint → test → build on every push | CI |
+| 11.6 | Deploy: Vercel (web) + Fly.io or Railway (api + Postgres) | Env var management; secrets never in git |
+| 11.7 | README with screenshots + architecture diagram | The thing a recruiter actually reads |
 
 ---
 
@@ -264,7 +253,7 @@ Seller uploads photos + basic details → Claude drafts a description and flags 
 | natural language search | Phase 9 |
 | market-price comparison | Phase 10 |
 | structured outputs | Phase 9.2 |
-| containerised / CI/CD | Phase 12 |
+| containerised / CI/CD | Phase 11 |
 
 ---
 
@@ -293,5 +282,4 @@ Phases 0–5 alone are already a portfolio project. Phases 9–10 are what make 
 - [x] Phase 8 — Map view
 - [x] Phase 9 — NL search (AI)
 - [x] Phase 10 — Fair price (AI)
-- [ ] Phase 11 — Listing assistant (stretch)
-- [ ] Phase 12 — Tests, Docker, CI/CD, deploy
+- [ ] Phase 11 — Tests, Docker, CI/CD, deploy
