@@ -45,11 +45,11 @@ comparable ones, save searches, and get notified when new matches appear.
 
 ```mermaid
 flowchart LR
-    B[Browser] -->|HTML + relative /api/*| V[Next.js on Vercel]
-    B -->|"&lt;img&gt; only"| A
-    V -->|"/api/* rewrite (server-side)"| A[FastAPI on Railway]
-    A --> P[(PostgreSQL)]
-    A -->|NL search, price summary| G[Groq API]
+    B["Browser"] -->|"pages and api calls"| V["Next.js on Vercel"]
+    B -.->|"listing images only"| A["FastAPI on Railway"]
+    V -->|"api proxied server-side"| A
+    A --> P[("PostgreSQL")]
+    A -->|"NL search and pricing"| G["Groq API"]
 ```
 
 The browser only ever talks to the Vercel origin. Client-side calls use relative
