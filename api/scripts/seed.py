@@ -1,8 +1,13 @@
-import random 
+import random
 from datetime import datetime
 
 from app.db import SessionLocal
 from app.models import Seller, Listing
+from app.security import hash_password
+
+# Seeded sellers all share this password so the deployed demo is explorable
+# (log in, view dashboard, post/publish). Documented in the README.
+DEMO_PASSWORD = "demo1234"
 
 
 # make, model, body_type, fuel, new_price_in_pence
@@ -73,11 +78,13 @@ def make_listing(seller_id):
 def main():
     db=SessionLocal()
     try:
+        pw_hash=hash_password(DEMO_PASSWORD)
         sellers=[]
         for i in range(20):
             seller=Seller(
                 name=f"Seller {i+1}",
-                email=f"seller{i+1}@example.com"
+                email=f"seller{i+1}@example.com",
+                password_hash=pw_hash,
             )
             db.add(seller)
             sellers.append(seller)
@@ -89,7 +96,8 @@ def main():
             listing=make_listing(seller.id)
             db.add(listing)
         db.commit()
-        print("generated 500 listing form 20 sellers")
+        print("generated 500 listings from 20 sellers")
+        print(f"demo login: seller1@example.com / {DEMO_PASSWORD}")
     finally:
         db.close()
 
