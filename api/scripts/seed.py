@@ -88,25 +88,35 @@ def make_listing(seller_id, car):
     return listing
 
 
+SEED_EMAIL_LIKE = "seller%@example.com"
+
+
 def main():
     db = SessionLocal()
     try:
-        existing = db.query(Listing).count()
-        if existing > 10:
-            # Exit 0, not 1 — so this staying wired as a Railway pre-deploy
-            # command doesn't fail every future deployment.
-            print(f"DB already has {existing} listings — nothing to seed.")
+        # Idempotent: bail if the demo listings are already there. Checks the
+        # seed's own data specifically, so it's independent of anything a
+        # visitor posts. Exits 0 so it's safe to leave in the start command.
+        already = (
+            db.query(Listing)
+            .join(Seller, Listing.seller_id == Seller.id)
+            .filter(Seller.email.like(SEED_EMAIL_LIKE))
+            .count()
+        )
+        if already:
+            print(f"already seeded ({already} demo listings) — nothing to do.")
             return
 
         pw_hash = hash_password(DEMO_PASSWORD)
         sellers = []
         for i in range(SELLER_COUNT):
-            seller = Seller(
-                name=f"Seller {i+1}",
-                email=f"seller{i+1}@example.com",
-                password_hash=pw_hash,
-            )
-            db.add(seller)
+            email = f"seller{i+1}@example.com"
+            # A previous half-finished run may have created the sellers but not
+            # the listings — reuse them rather than colliding on the unique email.
+            seller = db.query(Seller).filter_by(email=email).first()
+            if seller is None:
+                seller = Seller(name=f"Seller {i+1}", email=email, password_hash=pw_hash)
+                db.add(seller)
             sellers.append(seller)
         db.commit()
         for seller in sellers:
