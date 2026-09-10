@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import listings
@@ -9,9 +11,17 @@ from app.routers import saved_searches
 from app.routers import search
 
 app= FastAPI(title="RightWhip API")
+
+# The deployed frontend talks to the API through Next.js's /api rewrite
+# (server-side), so CORS isn't strictly in the path — but keep the allow-list
+# honest: localhost for dev, plus the deployed origin from FRONTEND_ORIGIN.
+allowed_origins = ["http://localhost:3000"]
+if frontend_origin := os.environ.get("FRONTEND_ORIGIN"):
+    allowed_origins.append(frontend_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
