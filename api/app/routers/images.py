@@ -1,6 +1,6 @@
 import os
 import uuid
-
+import boto3
 from fastapi import APIRouter, Depends, UploadFile, HTTPException
 
 from sqlalchemy.orm import Session
@@ -12,8 +12,9 @@ from app.security import get_current_user
 
 router = APIRouter(prefix="/listings", tags=["images"])
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+AWS_REGION = os.environ["AWS_REGION"]
+AWS_S3_BUCKET = os.environ["AWS_S3_BUCKET"]
+s3_client = boto3.client("s3", region_name=AWS_REGION)
 
 
 @router.post("/{listing_id}/images", response_model=ListingImageRead, status_code=201)
@@ -34,17 +35,23 @@ async def upload_image(
 
     ext = file.filename.rsplit(".", 1)[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    path = os.path.join(UPLOAD_DIR, filename)
+    contents = await file.read()
 
-    with open(path, "wb") as f:
-        f.write(await file.read())
-
+    s3_client.put_object(
+        Bucket=AWS_S3_BUCKET,
+        Key=filename,
+        Body=contents,
+        ContentType=file.content_type,
+    )
     next_position = (
         db.query(ListingImage).filter(ListingImage.listing_id == listing_id).count()
     )
     image = ListingImage(
-        listing_id=listing_id, url=f"/uploads/{filename}", position=next_position
+        listing_id=listing_id,
+        url=f"https://{AWS_S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{filename}",
+        position=next_position,
     )
+
     db.add(image)
     db.commit()
     db.refresh(image)
