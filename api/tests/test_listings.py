@@ -86,8 +86,8 @@ def test_image_upload_rejected_for_non_owner(authed_client, seller_factory, list
     assert res.status_code == 403
 
 
-def test_image_upload_accepted_for_owner(authed_client, listing_factory, monkeypatch, tmp_path):
-    monkeypatch.setattr("app.routers.images.UPLOAD_DIR", str(tmp_path))
+def test_image_upload_accepted_for_owner(authed_client, listing_factory, monkeypatch):
+    monkeypatch.setattr("app.routers.images.s3_client.put_object", lambda **kwargs: None)
     client, seller = authed_client
     listing = listing_factory(seller)
 
@@ -98,12 +98,11 @@ def test_image_upload_accepted_for_owner(authed_client, listing_factory, monkeyp
 
     assert res.status_code == 201
     assert res.json()["position"] == 0
-    assert len(list(tmp_path.iterdir())) == 1  # written to the temp dir, not the repo
 
 
-def test_deleting_a_listing_with_images_succeeds(authed_client, listing_factory, monkeypatch, tmp_path):
+def test_deleting_a_listing_with_images_succeeds(authed_client, listing_factory, monkeypatch):
     # Regression: without cascade on Listing.images, this 500s on the FK.
-    monkeypatch.setattr("app.routers.images.UPLOAD_DIR", str(tmp_path))
+    monkeypatch.setattr("app.routers.images.s3_client.put_object", lambda **kwargs: None)
     client, seller = authed_client
     listing = listing_factory(seller)
     client.post(
