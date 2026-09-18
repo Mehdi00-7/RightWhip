@@ -113,10 +113,6 @@ service container plus lint + production build for the web app, on every push
 and PR.
 
 ## Known limitations
-
-- **Uploaded photos are stored on the API container's local disk**, which is
-  ephemeral on Railway — they don't survive a redeploy. A production build would
-  use object storage (S3 / R2).
 - The seed's demo sellers all share one password; fine for a public demo, not a
   pattern for real accounts.
 
