@@ -53,11 +53,10 @@ flowchart LR
     A -->|"NL search and pricing"| G["Groq API"]
 ```
 
-only direct browser traffic outside Vercel is `<img>` tags loading uploaded photos from S3.
-
+The browser only ever talks to the Vercel origin. Client-side calls use relative
 `/api/*` paths, which Next.js rewrites **server-side** to the FastAPI service — so
 the auth cookie stays first-party and there's no CORS in the request path. The
-only direct browser→API traffic is `<img>` tags loading listing photos.
+only direct browser traffic outside Vercel is `<img>` tags loading uploaded photos from S3.
 
 This creates a build-time vs. runtime env-var split worth knowing about:
 `NEXT_PUBLIC_API_URL` (browser-facing, baked into the bundle at build time) and
