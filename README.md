@@ -14,24 +14,24 @@ comparable ones, save searches, and get notified when new matches appear.
 
 <!-- Drop PNGs into docs/screenshots/ with these names and they'll render here. -->
 
-| Browse & filter | Listing detail with price analysis |
-|---|---|
+| Browse & filter                        | Listing detail with price analysis              |
+| -------------------------------------- | ----------------------------------------------- |
 | ![Browse](docs/screenshots/browse.png) | ![Listing detail](docs/screenshots/listing.png) |
 
-| Natural-language search | Map view with radius search |
-|---|---|
+| Natural-language search                      | Map view with radius search      |
+| -------------------------------------------- | -------------------------------- |
 | ![NL search](docs/screenshots/nl-search.png) | ![Map](docs/screenshots/map.png) |
 
 ## Features
 
-| | |
-|---|---|
-| **Browse & filter** | Make, price, year, mileage, fuel, transmission, body type; sort by price/mileage/recency; paginated. |
-| **Natural-language search** | Free-text query → structured filters via Groq (`openai/gpt-oss-120b`) in JSON mode. The model only ever produces filters, which are validated against real database values before use — it never touches SQL. |
-| **Fair-price analysis** | Each listing is compared against cars of the same model within ±2 years and ±20% mileage, using Postgres `percentile_cont` for the median and quartiles. A badge shows "£1,200 below similar listings" — suppressed when the sample is too small to be meaningful. |
-| **Map view** | Leaflet map with marker clustering and radius search ("within 25km of here"). Listings without a dropped pin are geocoded from their postcode. |
-| **Accounts** | Register / log in (argon2 hashing, JWT in an httpOnly cookie), post listings as drafts, upload photos, publish, delete. |
-| **Favourites & saved searches** | Heart a listing; save a filter set; a background job flags saved searches with new matches since last checked. |
+|                                 |                                                                                                                                                                                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Browse & filter**             | Make, price, year, mileage, fuel, transmission, body type; sort by price/mileage/recency; paginated.                                                                                                                                                               |
+| **Natural-language search**     | Free-text query → structured filters via Groq (`openai/gpt-oss-120b`) in JSON mode. The model only ever produces filters, which are validated against real database values before use — it never touches SQL.                                                      |
+| **Fair-price analysis**         | Each listing is compared against cars of the same model within ±2 years and ±20% mileage, using Postgres `percentile_cont` for the median and quartiles. A badge shows "£1,200 below similar listings" — suppressed when the sample is too small to be meaningful. |
+| **Map view**                    | Leaflet map with marker clustering and radius search ("within 25km of here"). Listings without a dropped pin are geocoded from their postcode.                                                                                                                     |
+| **Accounts**                    | Register / log in (argon2 hashing, JWT in an httpOnly cookie), post listings as drafts, upload photos, publish, delete.                                                                                                                                            |
+| **Favourites & saved searches** | Heart a listing; save a filter set; a background job flags saved searches with new matches since last checked.                                                                                                                                                     |
 
 ## Stack
 
@@ -39,20 +39,22 @@ comparable ones, save searches, and get notified when new matches appear.
 - **Backend** — FastAPI, SQLAlchemy, Alembic, Pydantic
 - **Database** — PostgreSQL
 - **AI** — Groq API (OpenAI-compatible, free tier), structured JSON output
-- **Infra** — Docker (multi-stage), GitHub Actions CI, Vercel (web) + Railway (API + Postgres)
+- **Infra** — Docker (multi-stage), GitHub Actions CI, Vercel (web) + Render (API) + Neon (Postgres) + AWS S3 (uploads)
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     B["Browser"] -->|"pages and api calls"| V["Next.js on Vercel"]
-    B -.->|"listing images only"| A["FastAPI on Railway"]
-    V -->|"api proxied server-side"| A
-    A --> P[("PostgreSQL")]
+    B -.->|"uploaded photos"| S[("AWS S3")]
+    V -->|"api proxied server-side"| A["FastAPI on Render"]
+    A --> P[("PostgreSQL on Neon")]
+    A -->|"stores uploads"| S
     A -->|"NL search and pricing"| G["Groq API"]
 ```
 
-The browser only ever talks to the Vercel origin. Client-side calls use relative
+only direct browser traffic outside Vercel is `<img>` tags loading uploaded photos from S3.
+
 `/api/*` paths, which Next.js rewrites **server-side** to the FastAPI service — so
 the auth cookie stays first-party and there's no CORS in the request path. The
 only direct browser→API traffic is `<img>` tags loading listing photos.
@@ -83,6 +85,7 @@ docker compose exec api python -m scripts.seed
 ### Without Docker
 
 **API:**
+
 ```bash
 cd api
 python -m venv .venv && source .venv/bin/activate
@@ -94,6 +97,7 @@ uvicorn app.main:app --reload
 ```
 
 **Web:**
+
 ```bash
 cd web
 npm install
@@ -113,8 +117,11 @@ service container plus lint + production build for the web app, on every push
 and PR.
 
 ## Known limitations
+
 - The seed's demo sellers all share one password; fine for a public demo, not a
   pattern for real accounts.
+- **Cold starts** — the API runs on Render's free tier, which sleeps after ~15 min
+  idle. The first request after that can take 30–50s while it wakes up.
 
 ## Project layout
 
